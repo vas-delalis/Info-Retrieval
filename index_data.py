@@ -1,17 +1,7 @@
 from time import time
 from csv import DictReader
-from elasticsearch import Elasticsearch, helpers
-
-CERT_FINGERPRINT = "29:91:51:33:95:41:8E:EF:BB:F1:F4:CE:96:85:23:F8:B0:7B:E9:CF:10:7A:0C:9E:6D:1C:4D:9F:C4:3B:77:E6"
-ELASTIC_PASSWORD = "Sm*U1IJ7Mbcngor9pRiI"
-
-client = Elasticsearch(
-    "https://localhost:9200",
-    ssl_assert_fingerprint=CERT_FINGERPRINT,
-    basic_auth=("elastic", ELASTIC_PASSWORD)
-)
-
-print('Connected to Elasticsearch')
+from elasticsearch import helpers
+from es import client
 
 
 def book_generator():
@@ -38,7 +28,7 @@ def rating_generator():
             }
 
 
-print('Indexing... (1/3)')
+print('Indexing...')
 t0 = time()
 res = helpers.bulk(client=client, actions=book_generator())
 t1 = time()
