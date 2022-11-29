@@ -1,20 +1,18 @@
 import csv
 from collections import defaultdict
-from es import client
+from es_connect import client
 
 
-def get_books():
-    user_id = input('User id: ')
-    query = input('Search query: ')
-
-    # Read ratings
+def get_ratings(user_id: str):
     user_ratings = defaultdict(int)
     with open('BX-Book-Ratings.csv', encoding="utf-8") as file:
         for row in csv.reader(file):
             if row[0] == user_id:
                 user_ratings[row[1]] = int(row[2])
+    return user_ratings
 
-    # Search
+
+def get_books(query: str, user_ratings):
     result = client.search(index="books", query={'multi_match': {'query': query, 'fields': ['title^2', 'summary']}},
                            source=False, size=10000)
     max_score = result['hits']['max_score']
@@ -33,16 +31,18 @@ def get_books():
         })
 
     personalized_hits.sort(key=lambda x: x['personalized_score'], reverse=True)
+    return personalized_hits[:len(personalized_hits) // 10]  # First 10%
 
-    return personalized_hits[:len(personalized_hits) // 10]
 
+if __name__ == '__main__':
+    user_id = input('User id: ')
+    query = input('Search query: ')
 
-books = get_books()
-print()
-print(f'Showing {len(books)} books:')
-print()
-print('ISBN        Personalized score  From rating')
-print('----------  ------------------  -----------')
-for book in books:
-    from_rating = f'{book["rating_factor"]:12.2f}' if book['rating_factor'] else '          --'
-    print(f'{book["id"]} {book["personalized_score"]:19.2f} {from_rating}')
+    books = get_books(query, get_ratings(user_id))
+
+    print(f'\nShowing {len(books)} books:\n')
+    print('ISBN        Personalized score  From rating')
+    print('----------  ------------------  -----------')
+    for book in books:
+        from_rating = f'{book["rating_factor"]:12.2f}' if book['rating_factor'] else '          --'
+        print(f'{book["id"]} {book["personalized_score"]:19.2f} {from_rating}')

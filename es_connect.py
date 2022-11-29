@@ -15,4 +15,8 @@ client = Elasticsearch(
     basic_auth=("elastic", os.getenv('ES_PASSWORD'))
 )
 
-print('Connected to Elasticsearch')
+if client.ping():
+    print('Connected to Elasticsearch')
+else:
+    print('Could not connect to Elasticsearch.')
+    sys.exit(1)

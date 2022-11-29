@@ -1,7 +1,7 @@
 from time import time
 from csv import DictReader
 from elasticsearch import helpers
-from es import client
+from es_connect import client
 
 
 def book_generator():
@@ -16,15 +16,6 @@ def book_generator():
                 "publisher": book["publisher"],
                 "summary": book["summary"],
                 "category": book['category'][2:-2]
-            }
-
-
-def rating_generator():
-    with open('BX-Book-Ratings.csv', encoding="utf-8") as file:
-        for rating in DictReader(file):
-            yield {
-                "_index": 'ratings',
-                "user_id": rating['uid']
             }
 
 
