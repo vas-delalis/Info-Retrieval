@@ -20,7 +20,7 @@ def train_model(data, cluster_count: int, init_count: int):
     return model
 
 
-def generate_cluster_ratings(connection, cursor, retrain=False):
+def generate_cluster_ratings(connection: sqlite3.Connection, cursor, retrain=False):
     users = pd.read_sql_query('SELECT * FROM users', con=connection, index_col='id')
     data = users[['age', 'country']].dropna()
 
@@ -42,15 +42,13 @@ def generate_cluster_ratings(connection, cursor, retrain=False):
     users.to_sql('users', con=connection, if_exists='append')
 
     # Calculate cluster ratings
-    cursor.execute('CREATE TABLE cluster_ratings AS '
+    cursor.execute('DELETE FROM cluster_ratings')
+    cursor.execute('INSERT INTO cluster_ratings '
                    'SELECT cluster, isbn, AVG(rating) AS avg_rating '
                    'FROM ratings INNER JOIN users on users.id = ratings.user_id '
                    'WHERE cluster IS NOT NULL '
                    'GROUP BY isbn, cluster')
-
-    # insert into ratings select id, isbn, avg_rating, 1 from users join cluster_ratings on users.cluster = cluster_ratings.cluster limit 15 ON CONFLICT (user_id, isbn) DO NOTHING;
-
-
+    connection.commit()
 
 
 if __name__ == '__main__':
