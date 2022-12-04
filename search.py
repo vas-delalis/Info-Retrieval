@@ -13,8 +13,15 @@ def get_ratings(user_id: int):
 
 def get_books(query: str, user_ratings):
     # Search
-    result = client.search(index="books", query={'multi_match': {'query': query, 'fields': ['title^2', 'summary']}},
-                           source=False, size=10000)
+    result = client.search(
+        index="books",
+        query={'multi_match': {
+            'query': query,
+            'fields': ['title^2', 'summary']  # Title matches have double weight
+        }},
+        source=False,
+        size=10000
+    )
     max_score = result['hits']['max_score']
     hits = result['hits']['hits']
 

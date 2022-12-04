@@ -1,7 +1,7 @@
 from time import time
 from csv import DictReader
-from elasticsearch import helpers
-from elasticsearch_client import client
+# from elasticsearch import helpers
+# from elasticsearch_client import client
 import pandas as pd
 import sqlite3
 
@@ -22,16 +22,12 @@ users.to_sql('users', con=connection, if_exists='append')
 
 
 # User ratings
-cursor.execute('DROP TABLE IF EXISTS user_ratings')
-cursor.execute('CREATE TABLE user_ratings(user_id INTEGER, isbn VARCHAR, rating INTEGER)')
+cursor.execute('DROP TABLE IF EXISTS ratings')
+cursor.execute('CREATE TABLE ratings (user_id INTEGER, isbn VARCHAR, rating INTEGER, is_cluster_avg INTEGER, PRIMARY KEY (user_id, isbn))')
 
 user_ratings = pd.read_csv('BX-Book-Ratings.csv').rename(columns={'uid': 'user_id'})
-user_ratings.to_sql('user_ratings', con=connection, if_exists='append', index=False)
-
-
-# Cluster ratings
-cursor.execute('DROP TABLE IF EXISTS cluster_ratings')
-cursor.execute('CREATE TABLE cluster_ratings(cluster INTEGER, isbn VARCHAR, rating INTEGER)')
+user_ratings['is_cluster_avg'] = 0
+user_ratings.to_sql('ratings', con=connection, if_exists='append', index=False)
 
 connection.close()
 
@@ -52,8 +48,8 @@ def book_generator():
             }
 
 
-print('Indexing books into Elasticsearch...')
-t0 = time()
-res = helpers.bulk(client=client, actions=book_generator())
-t1 = time()
-print(f'Indexed {res[0]} documents in {t1 - t0}s')
+# print('Indexing books into Elasticsearch...')
+# t0 = time()
+# res = helpers.bulk(client=client, actions=book_generator())
+# t1 = time()
+# print(f'Indexed {res[0]} books in {t1 - t0}s')
